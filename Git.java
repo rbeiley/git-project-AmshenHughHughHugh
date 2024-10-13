@@ -1,33 +1,21 @@
 import java.io.File;
+import java.util.LinkedList;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.time.LocalDate;
 
 public class Git {
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        // File testerFile = new File("gangothy");
-        // BufferedWriter bW0 = new BufferedWriter(new FileWriter("gangothy", true));
-        // bW0.write("what's up my name is roen beiley");
-        // bW0.close();
-        // // initGitRepo();
-        // Blob blob = new Blob(testerFile.getName());
-        // System.out.println(blob.getHashedName());
-        // File fileInObjects = new File("git/objects", blob.getHashedName());
-        // BufferedWriter bW = new BufferedWriter(new FileWriter(fileInObjects, true));
-        // bW.write(blob.getData());
-        // bW.close();
-        // BufferedWriter bW2 = new BufferedWriter(new FileWriter("git/index", true));
-        // bW2.write("\n" + testerFile.getName() + blob.getHashedName());
-        // bW2.close();
+    public static LinkedList commitList;
 
-        // checkInitGitRepo();
-        // deleteRecursively(testerFile);
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+
     }
-    // THE CURRENT FORM THE TESTER IS IN RIGHT NOW IS JUST PRINTING OUT THE HASHED
-    // VERSION OF THE CODE I WROTE IN MY TESTERFILE
-    // P.S. IT DOESN'T WORK (NEED TO FIX HASHCODE)
 
     public static void initGitRepo() throws IOException {
         int existsCounter = 0;
@@ -49,6 +37,10 @@ public class Git {
         if (existsCounter >= 3) {
             System.out.println("Git Repositorys already exists");
         }
+        File head = new File("HEAD");
+        head.createNewFile();
+        File commitFile = new File("git/objects/commit");
+        commitFile.createNewFile();
     }
 
     public static void checkInitGitRepo() throws IOException {
@@ -75,7 +67,13 @@ public class Git {
         } else {
             System.out.println("creating the git file did not work");
         }
-
+        File headPath = new File("git/HEAD");
+        if (headPath.exists()) {
+            System.out.println("HEAD file was created successfully");
+            deleteRecursively(headPath);
+        } else {
+            System.out.println("creating the HEAD file did not work");
+        }
     }
 
     public static void deleteRecursively(File f) throws IOException {
@@ -84,9 +82,47 @@ public class Git {
                 deleteRecursively(c);
             }
             f.delete();
-        }
-        else {
+        } else {
             f.delete();
         }
     }
+
+    public static void makeCommit(File file, String author, String message)
+            throws IOException, NoSuchAlgorithmException {
+        File commitFile = new File("");
+        String dataInFile = getContents(commitFile.getPath());
+        BufferedWriter bR = new BufferedWriter(new FileWriter(commitFile.getPath()));
+
+        Blob blob = new Blob(file.toPath()); // stages the commit by creating a blob of the tree
+
+        // writing out the commit file
+        bR.write("tree: " + blob.convertToSha(dataInFile) + "\n");
+        bR.write("parent: " + getContents("HEAD") + "\n");
+        bR.write("author: " + author + "\n");
+        LocalDate date = LocalDate.now();
+        bR.write("date: " + date + "\n");
+        bR.write("message: " + message);
+
+        commitList.add(commitFile);
+        updateHeadFile(commitFile);
+        bR.close();
+    }
+
+    public static void updateHeadFile(File commitFile) throws IOException {
+        BufferedWriter bR = new BufferedWriter(new FileWriter("HEAD"));
+        bR.write(getContents(commitFile.getPath()));
+        bR.close();
+    }
+
+    public static String getContents(String filePath) throws IOException {
+        StringBuilder sB = new StringBuilder();
+        BufferedReader bR = new BufferedReader(new FileReader(filePath));
+        String line;
+        while ((line = bR.readLine()) != null) {
+            sB.append(line).append("\n");
+        }
+        bR.close();
+        return sB.toString();
+    }
+
 }

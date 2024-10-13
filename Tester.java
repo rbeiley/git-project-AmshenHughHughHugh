@@ -5,43 +5,41 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
 
-
 public class Tester {
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
 
-        
-        Git.initGitRepo();
+        // ALL COMMITS TESTS ARE DONE IN THE GIT CLASS
 
-        //Git.checkInitGitRepo();
+        // Git.initGitRepo();
 
-        
-        File blobTests = new File("./blobTests");
-        System.out.println(blobTests.mkdir());
+        // Git.checkInitGitRepo();
 
-        String[] blobNames = new String[5];
+        // File blobTests = new File("./blobTests");
+        // System.out.println(blobTests.mkdir());
 
-        for(int i = 0; i < blobNames.length; i++) {
-            File f = new File("./blobTests/" + i);
-            f.createNewFile();
+        // String[] blobNames = new String[5];
 
-            StringBuilder sb = new StringBuilder();
-            for(int j = 0; j < 500; j++) {
-                sb.append((int) (Math.random() * 9));
-            }
+        // for (int i = 0; i < blobNames.length; i++) {
+        // File f = new File("./blobTests/" + i);
+        // f.createNewFile();
 
-            File blobFile = new File("./blobTests/" + i);
+        // StringBuilder sb = new StringBuilder();
+        // for (int j = 0; j < 500; j++) {
+        // sb.append((int) (Math.random() * 9));
+        // }
 
-            Files.write(Paths.get(blobFile.getPath()), 
-            sb.toString().getBytes(),
-             StandardOpenOption.APPEND);
+        // File blobFile = new File("./blobTests/" + i);
 
-            
-        }
+        // Files.write(Paths.get(blobFile.getPath()),
+        // sb.toString().getBytes(),
+        // StandardOpenOption.APPEND);
 
-        Blob b = new Blob(Paths.get(blobTests.getPath()));
+        // }
 
-        // System.out.println(Blob.indexFileContains("./git/index", "c0b3828c877103d3990dc4f7b3a564079ccceb8e"));
+        // Blob b = new Blob(Paths.get(blobTests.getPath()));
 
+        // System.out.println(Blob.indexFileContains("./git/index",
+        // "c0b3828c877103d3990dc4f7b3a564079ccceb8e"));
 
     }
 }
