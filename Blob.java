@@ -87,17 +87,15 @@ public class Blob {
     public void indexWrite(String indexPath, Blob blob) throws IOException {
         if (!indexFileContains(indexPath, blob.getHashedName())) {
             Path currBlobOgPath = blob.getOgPath();
-            if (blob.isDirectory()) {
-                Files.write(
-                        Paths.get(indexPath), ("tree " + blob.getHashedName() + " "
-                                + currBlobOgPath.subpath(1, currBlobOgPath.getNameCount()) + '\n').getBytes(),
-                        StandardOpenOption.APPEND);
-            } else {
-                Files.write(
-                        Paths.get(indexPath), ("blob " + blob.getHashedName() + " "
-                                + currBlobOgPath.subpath(1, currBlobOgPath.getNameCount()) + '\n').getBytes(),
-                        StandardOpenOption.APPEND);
-            }
+            Path currBlobAbsolutePath = currBlobOgPath.toAbsolutePath();
+            Path repoRoot = Paths.get("").toAbsolutePath();
+            Path relativePath = repoRoot.relativize(currBlobAbsolutePath);
+            String entryType = blob.isDirectory() ? "tree" : "blob";
+            String indexEntry = entryType + " " + blob.getHashedName() + " " + relativePath.toString() + "\n";
+            Files.write(
+                    Paths.get(indexPath),
+                    indexEntry.getBytes(),
+                    StandardOpenOption.APPEND);
         }
     }
 

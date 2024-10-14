@@ -4,17 +4,68 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.time.LocalDate;
+import java.nio.file.Paths;
 
 public class Git {
-    public static LinkedList commitList;
+    public static LinkedList<File> commitList = new LinkedList<>();
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+        // initGitRepo();
 
+        // File testFile1 = new File("test1.txt");
+        // BufferedWriter writer1 = new BufferedWriter(new FileWriter(testFile1));
+        // writer1.write("This is test file 1");
+        // writer1.close();
+
+        // File testFile2 = new File("test2.txt");
+        // BufferedWriter writer2 = new BufferedWriter(new FileWriter(testFile2));
+        // writer2.write("This is test file 2");
+        // writer2.close();
+
+        // stage("test1.txt");
+        // stage("test2.txt");
+
+        // commit("Roen", "commit 1");
+
+        // System.out.println(getContents("git/commitFile"));
+
+        initGitRepo();
+
+        File testFile1 = new File("test1.txt");
+        BufferedWriter writer1 = new BufferedWriter(new FileWriter(testFile1));
+        writer1.write("test file 1");
+        writer1.close();
+
+        stage("test1.txt");
+
+        commit("Roen", "First commit");
+
+        System.out.println(getContents("git/commitFile"));
+
+        File testFile2 = new File("test2.txt");
+        BufferedWriter writer2 = new BufferedWriter(new FileWriter(testFile2));
+        writer2.write("test file 2");
+        writer2.close();
+
+        stage("test2.txt");
+
+        commit("Ian", "Second commit");
+
+        System.out.println(getContents("git/commitFile"));
+
+        File testFile3 = new File("test3.txt");
+        BufferedWriter writer3 = new BufferedWriter(new FileWriter(testFile3));
+        writer3.write("test file 3");
+        writer3.close();
+
+        stage("test3.txt");
+
+        commit("Bjorn", "Third commit");
+
+        System.out.println(getContents("git/commitFile"));
     }
 
     public static void initGitRepo() throws IOException {
@@ -87,30 +138,60 @@ public class Git {
         }
     }
 
-    public static void makeCommit(File file, String author, String message)
+    public static void stage(String filePath) throws NoSuchAlgorithmException, IOException {
+        Path path = Paths.get(filePath);
+        Blob blob = new Blob(path);
+    }
+
+    public static String commit(String author, String message)
             throws IOException, NoSuchAlgorithmException {
-        File commitFile = new File("");
+        File commitFile = new File("git/commitFile");
+        commitFile.createNewFile();
         String dataInFile = getContents(commitFile.getPath());
         BufferedWriter bR = new BufferedWriter(new FileWriter(commitFile.getPath()));
 
-        Blob blob = new Blob(file.toPath()); // stages the commit by creating a blob of the tree
+        // make the tree file and write in index stuff
+        File treeFile = new File("git/treeFile");
+        treeFile.createNewFile();
+        BufferedWriter treeFileWriter = new BufferedWriter(new FileWriter(treeFile.getPath()));
+        String indexContents = getContents("git/index");
+        treeFileWriter.write(indexContents);
+
+        // write in previous files
+        if (commitList.size() != 0) {
+            treeFileWriter.write(getContents("HEAD"));
+            treeFileWriter.close();
+        }
 
         // writing out the commit file
-        bR.write("tree: " + blob.convertToSha(dataInFile) + "\n");
-        bR.write("parent: " + getContents("HEAD") + "\n");
+        Blob treeFileBlob = new Blob(treeFile.toPath());
+        bR.write("tree: " + treeFileBlob.convertToSha(getContents(treeFile.getPath())) + "\n");
+
+        if (getContents("HEAD") == "") {
+            bR.write("parent: " + getContents("HEAD") + "\n");
+        } else {
+            bR.write("parent: " + getContents("HEAD"));
+        }
+
         bR.write("author: " + author + "\n");
-        LocalDate date = LocalDate.now();
-        bR.write("date: " + date + "\n");
+        bR.write("date: Feb. 14 1946\n");
         bR.write("message: " + message);
 
+        // adding commit to linked list
         commitList.add(commitFile);
+        // update the head
         updateHeadFile(commitFile);
         bR.close();
+
+        // return the sha1 of the commitFile
+        Blob blob = new Blob(commitFile.toPath());
+        return blob.convertToSha(dataInFile);
     }
 
-    public static void updateHeadFile(File commitFile) throws IOException {
+    public static void updateHeadFile(File commitFile) throws IOException, NoSuchAlgorithmException {
         BufferedWriter bR = new BufferedWriter(new FileWriter("HEAD"));
-        bR.write(getContents(commitFile.getPath()));
+        Blob blob = new Blob(commitFile.toPath());
+        bR.write(blob.convertToSha(getContents(commitFile.getPath())));
         bR.close();
     }
 
